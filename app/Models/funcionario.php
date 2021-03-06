@@ -11,25 +11,24 @@ class funcionario extends Model
     /*
      *  É possivel mudar a chave primária assim:
      *  protected $primarykey = 'nome_da_pk";
-     * 
+     *
      *  Se não quiser que seja auto_increment
      *  public $increment = false;
-     * 
+     *
      *  Para definir o tipo $Keytipe = 'string';
-     * 
+     *
      *  Para tirar os campos timestamps
      *  public $timestamps = false;
-     * 
+     *
      *  Anotações Azevedo
      */
 
     protected $fillable =[
-        'id',
         'nome',
         'endereco',
         'email',
         'cell'
     ];
 
-    protected $table = 'Funcionarios';
+    protected $table = 'Funcionario';
 }
