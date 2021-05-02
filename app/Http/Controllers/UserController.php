@@ -18,12 +18,13 @@ class UserController extends Controller
      */
     public function index( Request $request)
     {
-        $qtd_por_pag = 5;
+        $qtd_por_pagina = 5;
 
-        $data = User::orderBy('id', 'DESC')->paginate($qtd_por_pag);
+        $data = User::orderBy('id', 'DESC')->paginate($qtd_por_pagina);
 
         return view('users.index',
-        compact('data'))->protectedwith('i', ($request->input('page', 1) - 1) * $qtd_por_pag);
+                compact('data'))->
+                    with('i', ($request->input('page', 1) - 1) * $qtd_por_pagina);
     }
 
     /**
@@ -34,7 +35,8 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::pluck('name', 'name')->all();
-        return view('user.create', compact($roles));
+
+        return view('users.create', compact($roles));
     }
 
     /**
@@ -49,17 +51,17 @@ class UserController extends Controller
                         ['name' => 'required',
                         'email' => 'required|email|unique:users,email',
                         'password' => 'required|same:confirm-password',
-                        'roles' => 'required']
-                        );
+                        'roles' => 'required']);
 
-        $recebe = $request-all();
+        $input = $request->all();
 
-        $recebe['password'] = Hash::make($recebe['password']);
+        $input['password'] = Hash::make($input['password']);
 
         $user = User::create($input);
 
-        $user->assignRole($request->input('roles'));
-        return redirect()->route('users.index'->with('success', 'Usuario criado com sucesso'));
+        $user->assignRole( $request->input('roles'));
+
+        return redirect()->route('users.index')->with('success','Usuário criado com sucesso');
     }
 
     /**
@@ -70,7 +72,9 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        //
+        $user = User::find($id);
+
+        return view('users.show', compact('user'));
     }
 
     /**
@@ -81,8 +85,15 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        //
+        $user = User::find($id);
+
+        $roles = Role::pluck('name', 'name')->all();
+
+        $userRole = $user->roles->pluck('name', 'name')->all();
+
+        return view('users.edit', compact('user', 'roles', 'userRole'));
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -93,10 +104,32 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->validate($request,
+                        ['name' => 'required',
+                        'email' => 'required|email|unique:users,email',
+                        'password' => 'required|same:confirm-password',
+                        'roles' => 'required']);
+
+        $input = $request->all();
+
+        if(!empty($input['password'])){
+
+            $input['password'] = Hash::make($input['password']);
+
+        }else{
+
+            $input = Arr::except( $input, ['password']);
+        }
+
         $user = User::find($id);
-        $roles = Role::pluck('name','name')->all();
-        $userRole = $user->roles->pluck('name','name')->all();
-        return view('users.edit', compact('','',''));
+
+        $user->update($input);
+
+        DB::table('model_has_roles')->where('model_id',$id)->delete();
+
+        $user->assignRole($request->input('roles'));
+
+        return redirect()->route('users.index')->with('success', 'Usuário atualizado com sucesso');
     }
 
     /**
@@ -107,7 +140,8 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        User:find($id)->delete();
-        return redirect()->route('users.index')->with('success', 'Usuário removido com sucesso');
+        User::find($id)->delete();
+
+        return redirect()->route('users.index')->with('success','Usuário removido com sucesso');
     }
 }
