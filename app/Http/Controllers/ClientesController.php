@@ -34,6 +34,20 @@ class ClientesController extends Controller
     	return view('clientes.listar', ['clientes' => $clientes]);
     }
 
+    public function getCliente($id)
+    {
+        $cliente = Clientes::find($id);
+
+        return $cliente;
+    }
+
+    public function checkCliente(int $id)
+    {
+        $cliente = Clientes::find($id);
+
+        return $cliente ?? false;
+    }
+
     public function index( Request $request)
     {
         $qtd_por_pagina = 5;
